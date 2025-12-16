@@ -1,12 +1,5 @@
 import { test, expect } from '@playwright/test';
 
-// Helper to get a future day number for date picker selection
-function getFutureDay(daysFromNow: number): string {
-  const date = new Date();
-  date.setDate(date.getDate() + daysFromNow);
-  return date.getDate().toString();
-}
-
 test.beforeEach(async ({ page }) => {
   // Login before each test
   await page.goto('/login');
@@ -23,12 +16,10 @@ test('minimal happy path - create transport request using only mandatory fields'
 
   // --- WAYPOINTS TAB ---
 
-  const pickupDay = getFutureDay(1);   // tomorrow
-  const deliveryDay = getFutureDay(2); // 2 days from now
-
-  // Pickup date
+  // Pickup date (next month, day 15)
   await page.locator('[data-test-id="dp-input"]').first().click();
-  await page.getByText(pickupDay, { exact: true }).click();
+  await page.getByRole('button', { name: 'Next month' }).click();
+  await page.getByText('15', { exact: true }).click();
   await page.locator('[data-test-id="select-button"]').click();
 
   // Pickup city 
@@ -38,9 +29,10 @@ test('minimal happy path - create transport request using only mandatory fields'
   await page.getByRole('option', { name: 'Slovakia' }).click();
   await page.locator('input[name="waypoints[0].saveToDirectory"]').uncheck(); // Do not save address to directory
 
-  // Delivery date
+  // Delivery date (next month, day 20)
   await page.locator('[data-test-id="dp-input"]').nth(3).click();
-  await page.getByText(deliveryDay, { exact: true }).click();
+  await page.getByRole('button', { name: 'Next month' }).click();
+  await page.getByText('20', { exact: true }).click();
   await page.locator('[data-test-id="select-button"]').click();
 
   // Delivery city 
