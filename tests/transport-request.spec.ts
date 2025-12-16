@@ -1,4 +1,29 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
+
+// --- HELPER FUNCTIONS ---
+
+async function selectDate(page: Page, inputIndex: number, day: string) {
+  await page.locator('[data-test-id="dp-input"]').nth(inputIndex).click();
+  await page.getByRole('button', { name: 'Next month' }).click();
+  await page.getByText(day, { exact: true }).click();
+  await page.locator('[data-test-id="select-button"]').click();
+}
+
+async function fillWaypoint(page: Page, index: number, city: string, country: string) {
+  await page.locator(`[id="waypoints[${index}].city"]`).fill(city);
+  await page.locator(`[id="waypoints[${index}].country"]`).click();
+  await page.locator(`[id="waypoints[${index}].country"]`).fill(country);
+  await page.getByRole('option', { name: country }).click();
+  await page.locator(`input[name="waypoints[${index}].saveToDirectory"]`).uncheck();
+}
+
+async function deleteRequest(page: Page) {
+  await page.locator('#dropdownMenu').first().click();
+  await page.locator('.dropdown-menu').getByText('Delete').click();
+  await page.getByRole('button', { name: 'Delete' }).click();
+}
+
+// --- TESTS ---
 
 test.beforeEach(async ({ page }) => {
   // Login before each test
@@ -16,31 +41,13 @@ test('minimal happy path - create transport request using only mandatory fields'
 
   // --- WAYPOINTS TAB ---
 
-  // Pickup date (next month, day 15)
-  await page.locator('[data-test-id="dp-input"]').first().click();
-  await page.getByRole('button', { name: 'Next month' }).click();
-  await page.getByText('15', { exact: true }).click();
-  await page.locator('[data-test-id="select-button"]').click();
+  // Pickup (next month, day 15)
+  await selectDate(page, 0, '15');
+  await fillWaypoint(page, 0, 'Bratislava', 'Slovakia');
 
-  // Pickup city 
-  await page.locator('[id="waypoints[0].city"]').fill('Bratislava');
-  await page.locator('[id="waypoints[0].country"]').click();
-  await page.locator('[id="waypoints[0].country"]').fill('Slovakia');
-  await page.getByRole('option', { name: 'Slovakia' }).click();
-  await page.locator('input[name="waypoints[0].saveToDirectory"]').uncheck(); // Do not save address to directory
-
-  // Delivery date (next month, day 20)
-  await page.locator('[data-test-id="dp-input"]').nth(3).click();
-  await page.getByRole('button', { name: 'Next month' }).click();
-  await page.getByText('20', { exact: true }).click();
-  await page.locator('[data-test-id="select-button"]').click();
-
-  // Delivery city 
-  await page.locator('[id="waypoints[1].city"]').fill('Prague');
-  await page.locator('[id="waypoints[1].country"]').click();
-  await page.locator('[id="waypoints[1].country"]').fill('Czechia');
-  await page.getByRole('option', { name: 'Czechia' }).click();
-  await page.locator('input[name="waypoints[1].saveToDirectory"]').uncheck(); // Do not save address to directory
+  // Delivery (next month, day 20)
+  await selectDate(page, 3, '20');
+  await fillWaypoint(page, 1, 'Prague', 'Czechia');
 
   // --- CARGO INFO TAB (skip - no mandatory fields) ---
   await page.getByRole('button', { name: 'Continue' }).click();
@@ -62,19 +69,8 @@ test('minimal happy path - create transport request using only mandatory fields'
   await expect(page).toHaveURL(/\/request\//);
 
   // --- CLEANUP ---
-  // Open dropdown menu
-  await page.locator('#dropdownMenu').first().click();
-  // Click Delete option
-  await page.locator('.dropdown-menu').getByText('Delete').click();
-  // Confirm deletion
-  await page.getByRole('button', { name: 'Delete' }).click();
-
-  // Verify redirected back to list
+  await deleteRequest(page);
   await expect(page).toHaveURL('/request/list');
-});
-
-test('realistic happy path - create transport request as typical user would', async ({ page }) => {
-  // TODO: implement
 });
 
 test('negative - required fields validation', async ({ page }) => {
