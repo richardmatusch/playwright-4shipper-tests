@@ -1,5 +1,29 @@
 import { test, expect, Page } from '@playwright/test';
 
+// --- TEST DATA ---
+
+const pickupLocation = {
+  name: 'VOLKSWAGEN SLOVAKIA, a.s.',
+  street: 'Jána Jonáša 1',
+  city: 'Bratislava',
+  country: 'Slovakia',
+  postCode: '841 07',
+  contactName: 'Marek Novák',
+  contactEmail: 'marek.novak@vw-slovakia.sk',
+  contactPhone: '+421 904 345 678',
+};
+
+const deliveryLocation = {
+  name: 'Volkswagen AG',
+  street: 'Berliner Ring 2',
+  city: 'Wolfsburg',
+  country: 'Germany',
+  postCode: '38440',
+  contactName: 'Thomas Bauer',
+  contactEmail: 'thomas.bauer@volkswagen.de',
+  contactPhone: '+49 5361 912345',
+};
+
 // --- HELPER FUNCTIONS ---
 
 async function selectDate(page: Page, inputIndex: number, day: string) {
@@ -9,11 +33,25 @@ async function selectDate(page: Page, inputIndex: number, day: string) {
   await page.locator('[data-test-id="select-button"]').click();
 }
 
-async function fillWaypoint(page: Page, index: number, city: string, country: string) {
-  await page.locator(`[id="waypoints[${index}].city"]`).fill(city);
+async function fillWaypoint(page: Page, index: number, data: typeof pickupLocation) {
+  // Optional fields
+  await page.locator(`[id="waypoints[${index}].name"]`).fill(data.name);
+  await page.locator(`[id="waypoints[${index}].street"]`).fill(data.street);
+
+  // Required fields
+  await page.locator(`[id="waypoints[${index}].city"]`).fill(data.city);
   await page.locator(`[id="waypoints[${index}].country"]`).click();
-  await page.locator(`[id="waypoints[${index}].country"]`).fill(country);
-  await page.getByRole('option', { name: country }).click();
+  await page.locator(`[id="waypoints[${index}].country"]`).fill(data.country);
+  await page.getByRole('option', { name: data.country }).click();
+
+  // Optional fields
+  await page.locator(`[id="waypoints[${index}].postCode"]`).fill(data.postCode);
+  await page.locator(`[id="waypoints[${index}].contactName"]`).fill(data.contactName);
+  await page.locator(`[id="waypoints[${index}].contactEmail"]`).fill(data.contactEmail);
+  await page.locator(`[id="waypoints[${index}].contactPhone"]`).fill(data.contactPhone);
+  await page.getByRole('listitem').filter({ hasText: 'No results found' }).click();
+
+  // Don't save to directory
   await page.locator(`input[name="waypoints[${index}].saveToDirectory"]`).uncheck();
 }
 
@@ -34,7 +72,7 @@ test.beforeEach(async ({ page }) => {
   await expect(page).toHaveURL('/request/list');
 });
 
-test('minimal happy path - create transport request using only mandatory fields', async ({ page }) => {
+test('happy path - create transport request', async ({ page }) => {
   // Navigate to create form
   await page.getByRole('link', { name: '+ New request' }).click();
   await expect(page).toHaveURL('/request/create');
@@ -43,11 +81,11 @@ test('minimal happy path - create transport request using only mandatory fields'
 
   // Pickup (next month, day 15)
   await selectDate(page, 0, '15');
-  await fillWaypoint(page, 0, 'Bratislava', 'Slovakia');
+  await fillWaypoint(page, 0, pickupLocation);
 
   // Delivery (next month, day 20)
   await selectDate(page, 3, '20');
-  await fillWaypoint(page, 1, 'Prague', 'Czechia');
+  await fillWaypoint(page, 1, deliveryLocation);
 
   // --- CARGO INFO TAB (skip - no mandatory fields) ---
   await page.getByRole('button', { name: 'Continue' }).click();
