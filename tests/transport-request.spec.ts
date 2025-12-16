@@ -73,9 +73,9 @@ test('minimal happy path - create transport request using only mandatory fields'
   // Open dropdown menu
   await page.locator('#dropdownMenu').first().click();
   // Click Delete option
-  await page.locator('div').filter({ hasText: /^Delete$/ }).click();
+  await page.locator('.dropdown-menu').getByText('Delete').click();
   // Confirm deletion
-  await page.getByRole('button', { name: /Delete/i }).click();
+  await page.getByRole('button', { name: 'Delete' }).click();
 
   // Verify redirected back to list
   await expect(page).toHaveURL('/request/list');
