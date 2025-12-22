@@ -49,7 +49,7 @@ async function fillWaypoint(page: Page, index: number, data: typeof pickupLocati
   await page.locator(`[id="waypoints[${index}].contactName"]`).fill(data.contactName);
   await page.locator(`[id="waypoints[${index}].contactEmail"]`).fill(data.contactEmail);
   await page.locator(`[id="waypoints[${index}].contactPhone"]`).fill(data.contactPhone);
-  await page.getByRole('listitem').filter({ hasText: 'No results found' }).click();
+  await page.getByRole('listitem').filter({ hasText: 'No results found' }).click(); // To close autocomplete dropdown
 
   // Don't save to directory
   await page.locator(`input[name="waypoints[${index}].saveToDirectory"]`).uncheck();
