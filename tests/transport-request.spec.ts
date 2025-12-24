@@ -24,6 +24,15 @@ const deliveryLocation = {
   contactPhone: '+49 5361 912345',
 };
 
+const cargoDetails = {
+  reference: 'PO-VW-2026-001234',
+  description: '10 pallets of automotive spare parts and electronic components for VW Wolfsburg production line',
+  value: 85000,
+  weight: 7500,
+  volume: 10,
+  maxLength: 10.6,
+};
+
 // --- HELPER FUNCTIONS ---
 
 async function selectDate(page: Page, inputIndex: number, day: string) {
