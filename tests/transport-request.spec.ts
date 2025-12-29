@@ -27,16 +27,16 @@ const deliveryLocation = {
 const cargoDetails = {
   reference: 'PO-VW-2026-001234',
   description: '10 pallets of automotive spare parts and electronic components for VW Wolfsburg production line',
-  value: 85000,
-  weight: 7500,
-  volume: 10,
-  maxLength: 10.6,
+  value: '85000',
+  weight: '7500',
+  volume: '10',
+  maxLength: '10.6',
 };
 
 // --- HELPER FUNCTIONS ---
 
-async function selectDate(page: Page, inputIndex: number, day: string) {
-  await page.locator('[data-test-id="dp-input"]').nth(inputIndex).click();
+async function selectDate(page: Page, index: number, day: string) {
+  await page.locator('[data-test-id="dp-input"]').nth(index).click();
   await page.getByRole('button', { name: 'Next month' }).click();
   await page.getByText(day, { exact: true }).click();
   await page.locator('[data-test-id="select-button"]').click();
@@ -62,6 +62,15 @@ async function fillWaypoint(page: Page, index: number, data: typeof pickupLocati
 
   // Don't save to directory
   await page.locator(`input[name="waypoints[${index}].saveToDirectory"]`).uncheck();
+}
+
+async function fillCargoDetails(page: Page, index: number, data: typeof cargoDetails) {
+  await page.locator(`[id="waypoints[${index}].reference"]`).fill(data.reference);
+  await page.getByRole('textbox', { name: 'Cargo description' }).fill(data.description);
+  await page.getByRole('spinbutton', { name: 'Value' }).fill(data.value);
+  await page.locator('[id="cargo.maxLength"]').fill(data.maxLength);
+  await page.locator('[id="cargo.weight"]').fill(data.weight);
+  await page.locator('[id="cargo.volume"]').fill(data.volume);
 }
 
 async function deleteRequest(page: Page) {
@@ -96,8 +105,9 @@ test('happy path - create transport request', async ({ page }) => {
   await selectDate(page, 3, '20');
   await fillWaypoint(page, 1, deliveryLocation);
 
-  // --- CARGO INFO TAB (skip - no mandatory fields) ---
+  // --- CARGO INFO TAB ---
   await page.getByRole('button', { name: 'Continue' }).click();
+  await fillCargoDetails(page, 0, cargoDetails);
 
   // --- CARRIERS TAB ---
   await page.getByRole('button', { name: 'Continue' }).click();
