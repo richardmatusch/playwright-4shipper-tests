@@ -92,7 +92,7 @@ test.beforeEach(async ({ page }) => {
 
 test('happy path - create transport request', async ({ page }) => {
   // Navigate to create form
-  await page.getByRole('link', { name: '+ New request' }).click();
+  await page.getByRole('link', { name: '+ New request' }).first().click();
   await expect(page).toHaveURL('/request/create');
 
   // --- WAYPOINTS TAB ---
