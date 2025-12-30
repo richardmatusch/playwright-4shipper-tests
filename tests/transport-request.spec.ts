@@ -121,7 +121,8 @@ test('happy path - create transport request', async ({ page }) => {
   await page.getByRole('button', { name: 'Send request' }).click();
 
   // --- ASSERTIONS ---
-  await expect(page).toHaveURL(/\/request\//);
+  await expect(page).toHaveURL(/\/request\/view\/\d+/);
+  await expect(page.getByText(cargoDetails.description)).toBeVisible();
 
   // --- CLEANUP ---
   await deleteRequest(page);

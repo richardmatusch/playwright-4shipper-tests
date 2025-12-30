@@ -28,8 +28,14 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('')`. */
     baseURL: 'https://stage.4shipper.transportly.eu',
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    /* Collect trace on test failure. See https://playwright.dev/docs/trace-viewer */
+    trace: 'retain-on-failure',
+
+    /* Capture screenshot on test failure */
+    screenshot: 'only-on-failure',
+
+    /* Capture video on test failure */
+    video: 'retain-on-failure',
   },
 
   /* Configure projects for major browsers */

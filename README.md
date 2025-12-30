@@ -15,6 +15,24 @@ cp .env.example .env  # Then edit .env with test credentials
 npx playwright test                           # Run all tests
 npx playwright test --headed                  # Run with browser visible
 npx playwright test -g "happy path"           # Run specific test by name
+npx playwright show-report                    # View HTML report with screenshots
+```
+
+## Debugging Failed Tests
+
+The project is configured to automatically capture debugging artifacts on test failure:
+- **Screenshots**: Visual snapshot at the moment of failure
+- **Videos**: Full test execution recording
+- **Trace files**: Detailed execution logs with screenshots, DOM snapshots, and network requests
+
+View the HTML report with screenshots and traces:
+```bash
+npx playwright show-report
+```
+
+Or view trace files directly:
+```bash
+npx playwright show-trace test-results/[test-name]/trace.zip
 ```
 
 ## Bug Report: Reference Field Selection Issue
