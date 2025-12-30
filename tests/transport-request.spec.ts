@@ -38,7 +38,7 @@ const cargoDetails = {
 async function selectDate(page: Page, index: number, day: string) {
   await page.locator('[data-test-id="dp-input"]').nth(index).click();
   await page.getByRole('button', { name: 'Next month' }).click();
-  await page.getByText(day, { exact: true }).click();
+  await page.getByRole('gridcell', { name: day }).click();
   await page.locator('[data-test-id="select-button"]').click();
 }
 
@@ -91,15 +91,19 @@ test.beforeEach(async ({ page }) => {
 
 test('happy path - create transport request', async ({ page }) => {
   // Navigate to create form
-  await page.getByRole('link', { name: '+ New request' }).first().click();
-  await expect(page).toHaveURL('/request/create');
+  await page.getByRole('link', { name: '+ New request' }).click();
+  await page.waitForURL('/request/create');
 
   // --- WAYPOINTS TAB ---
-  // Pickup (next month, datepicker index, day 15)
+  await expect(page.getByRole('radio', { name: 'One way' })).toBeChecked();
+  
+  // Pickup (next month, day 15)
+  await expect(page.getByRole('radio', { name: 'Pickup point' }).first()).toBeChecked();
   await selectDate(page, 0, '15');
   await fillWaypoint(page, 0, pickupLocation);
 
-  // Delivery (next month, datepicker index, day 20)
+  // Delivery (next month, day 20)
+  await expect(page.getByRole('radio', { name: 'Delivery point' }).nth(1)).toBeChecked();
   await selectDate(page, 3, '20');
   await fillWaypoint(page, 1, deliveryLocation);
   await page.getByRole('button', { name: 'Continue' }).click();
@@ -109,7 +113,6 @@ test('happy path - create transport request', async ({ page }) => {
   await page.getByRole('button', { name: 'Continue' }).click();
 
   // --- CARRIERS TAB ---
-  // Select Demo carrier
   await page.getByText('Demo carrier').click();
   await page.locator('[id="6847"]').check();
   await page.getByRole('button', { name: 'Continue' }).click();
@@ -118,7 +121,6 @@ test('happy path - create transport request', async ({ page }) => {
   await page.getByRole('button', { name: 'Send request' }).click();
 
   // --- ASSERTIONS ---
-  // await expect(page.getByText('Bidding active')).toBeVisible(); this sometimes fails... needs investigation
   await expect(page).toHaveURL(/\/request\//);
 
   // --- CLEANUP ---

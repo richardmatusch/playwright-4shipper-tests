@@ -47,3 +47,8 @@ Or filling cargo description first works too:
   await page.getByRole('textbox', { name: 'Cargo description' }).fill(data.description);
   await page.locator('[id="reference"]').fill(data.reference);
 ```
+
+## Observed Test Behavior
+
+### Occasional Timeout with Repeated Runs
+When running `npx playwright test --repeat-each=XYZ`, the test occasionally timed out on the last iteration at the "Send request" button click (30 second timeout exceeded). Single test runs complete successfully.
