@@ -35,35 +35,43 @@ const cargoDetails = {
 
 // --- HELPER FUNCTIONS ---
 
-async function selectDate(page: Page, index: number, day: string) {
-  await page.locator('[data-test-id="dp-input"]').nth(index).click();
+/**
+ * Select a date from the date picker
+ * @param dateInputIndex - Index of the date input field (each waypoint has 2: earliest/latest)
+ * @param day - Day of the month to select
+ */
+async function selectDate(page: Page, dateInputIndex: number, day: string) {
+  await page.locator('[data-test-id="dp-input"]').nth(dateInputIndex).click();
   await page.getByRole('button', { name: 'Next month' }).click();
   await page.getByRole('gridcell', { name: day }).click();
   await page.locator('[data-test-id="select-button"]').click();
 }
 
-async function fillWaypoint(page: Page, index: number, data: typeof pickupLocation) {
+/**
+ * Fill waypoint form fields
+ * @param waypointIndex - Zero-based index of the waypoint in the form
+ */
+async function fillWaypoint(page: Page, waypointIndex: number, data: typeof pickupLocation) {
   // Required fields
-  await page.locator(`[id="waypoints[${index}].city"]`).fill(data.city);
-  await page.locator(`[id="waypoints[${index}].country"]`).fill(data.country);
+  await page.locator(`[id="waypoints[${waypointIndex}].city"]`).fill(data.city);
+  await page.locator(`[id="waypoints[${waypointIndex}].country"]`).fill(data.country);
   await page.getByRole('option', { name: data.country }).click();
 
   // Optional fields
-  await page.locator(`[id="waypoints[${index}].name"]`).fill(data.name);
-  await page.locator(`[id="waypoints[${index}].street"]`).fill(data.street);
-  await page.locator(`[id="waypoints[${index}].postCode"]`).fill(data.postCode);
-  await page.locator(`[id="waypoints[${index}].contactName"]`).fill(data.contactName);
-  await page.locator(`[id="waypoints[${index}].contactEmail"]`).fill(data.contactEmail);
-  await page.locator(`[id="waypoints[${index}].contactPhone"]`).fill(data.contactPhone);
+  await page.locator(`[id="waypoints[${waypointIndex}].name"]`).fill(data.name);
+  await page.locator(`[id="waypoints[${waypointIndex}].street"]`).fill(data.street);
+  await page.locator(`[id="waypoints[${waypointIndex}].postCode"]`).fill(data.postCode);
+  await page.locator(`[id="waypoints[${waypointIndex}].contactName"]`).fill(data.contactName);
+  await page.locator(`[id="waypoints[${waypointIndex}].contactEmail"]`).fill(data.contactEmail);
+  await page.locator(`[id="waypoints[${waypointIndex}].contactPhone"]`).fill(data.contactPhone);
   await page.getByRole('listitem').filter({ hasText: 'No results found' }).click(); // To close autocomplete dropdown
 
   // Don't save to directory
-  await page.locator(`input[name="waypoints[${index}].saveToDirectory"]`).uncheck();
+  await page.locator(`input[name="waypoints[${waypointIndex}].saveToDirectory"]`).uncheck();
 }
 
 async function fillCargoDetails(page: Page, data: typeof cargoDetails) {  
-  // Wait for the cargo Reference field to appear (id="reference", not waypoints[x].reference)
-  await page.locator('[id="reference"]').waitFor({ state: 'visible' });
+  await page.locator('[id="reference"]').waitFor({ state: 'visible' }); // WORKAROUND: Reference field lazy rendering issue (see README.md)
   await page.locator('[id="reference"]').fill(data.reference);
   await page.getByRole('textbox', { name: 'Cargo description' }).fill(data.description);
   await page.getByRole('spinbutton', { name: 'Value' }).fill(data.value);
@@ -97,14 +105,14 @@ test('happy path - create transport request', async ({ page }) => {
   // --- WAYPOINTS TAB ---
   await expect(page.getByRole('radio', { name: 'One way' })).toBeChecked();
   
-  // Pickup (next month, day 15)
+  // Pickup
   await expect(page.getByRole('radio', { name: 'Pickup point' }).first()).toBeChecked();
-  await selectDate(page, 0, '15');
+  await selectDate(page, 0, '15'); // Earliest pickup datetime field (next month, day 15)
   await fillWaypoint(page, 0, pickupLocation);
 
-  // Delivery (next month, day 20)
+  // Delivery
   await expect(page.getByRole('radio', { name: 'Delivery point' }).nth(1)).toBeChecked();
-  await selectDate(page, 3, '20');
+  await selectDate(page, 3, '20'); // Latest delivery datetime field (index 3 = 2nd waypoint × 2 inputs; next month, day 20)
   await fillWaypoint(page, 1, deliveryLocation);
   await page.getByRole('button', { name: 'Continue' }).click();
 
