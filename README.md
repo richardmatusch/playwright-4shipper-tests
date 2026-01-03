@@ -56,19 +56,28 @@ Or filling cargo description first works too:
   await page.locator('[id="reference"]').fill(data.reference);
 ```
 
-### Bug 2: Date/Time Validation Inconsistency
-Datetime fields are required to create a transport request, but unlike City/Country fields, they are not validated on the Waypoints tab. This creates poor UX as users only discover missing dates on the Review tab after completing Cargo and Carriers tabs.
+### Bug 2: Inconsistent Required Field Validation Pattern
+Multiple required fields are not validated on their respective tabs, creating poor UX as users only discover missing required data on the Review tab after completing all other tabs.
+
+#### Affected Fields
+1. **Waypoints tab** - Date/time fields (not validated until Review tab)
+2. **Carriers tab** - Carrier selection (not validated until Review tab)
+
+Note: City and Country fields ARE validated correctly on the Waypoints tab, making the inconsistency more noticeable.
 
 #### Steps to Reproduce
 1. Navigate to Create Transport Request
 2. Fill only City and Country for both waypoints (skip datetime fields)
 3. Click Continue → Successfully proceeds to Cargo Info tab
 4. Click Continue → Successfully proceeds to Carriers tab
-5. Select a carrier, click Continue → Successfully proceeds to Review tab
-6. Click "Send request" → Validation error appears about missing dates
+5. Don't select any carrier, click Continue → Successfully proceeds to Review tab
+6. Validation errors appear: 'Date and time is missing' in Route waypoints section; 'At least one carrier needs to be selected to send the request' on hover of the Send request button
 
 #### Expected Behavior
-All required fields (City, Country, AND datetimes) should be validated on the Waypoints tab before allowing Continue, maintaining consistent validation patterns.
+All required fields should be validated on their respective tabs before allowing Continue, maintaining consistent validation pattern with City/Country fields.
+
+#### Actual Behavior
+Required datetime and carrier selection validations are deferred to Review tab, forcing users to navigate backwards after completing the entire form.
 
 ### Bug 3: Missing Negative Number Validation
 Cargo numeric fields (Value, Max. Length, Overall volume) accept negative values without validation, while only the Overall weight field correctly validates and rejects negative numbers.
