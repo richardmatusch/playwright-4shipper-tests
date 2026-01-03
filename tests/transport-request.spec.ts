@@ -48,6 +48,16 @@ async function selectDate(page: Page, dateInputIndex: number, day: string) {
 }
 
 /**
+ * Fill only required waypoint fields (city and country)
+ * @param waypointIndex - Zero-based index of the waypoint in the form
+ */
+async function fillWaypointRequired(page: Page, waypointIndex: number, data: { city: string; country: string }) {
+  await page.locator(`[id="waypoints[${waypointIndex}].city"]`).fill(data.city);
+  await page.locator(`[id="waypoints[${waypointIndex}].country"]`).fill(data.country);
+  await page.getByRole('option', { name: data.country }).click();
+}
+
+/**
  * Fill waypoint form fields
  * @param waypointIndex - Zero-based index of the waypoint in the form
  */
@@ -137,11 +147,50 @@ test('happy path - create transport request', async ({ page }) => {
   await expect(page).toHaveURL('/request/list');
 });
 
-/*
-test('negative - required fields validation', async ({ page }) => {
-  // TODO: implement
+test('negative - form validation scenarios', async ({ page }) => {
+  // Navigate to create form
+  await page.getByRole('link', { name: '+ New request' }).click();
+  await page.waitForURL('/request/create');
+
+  // --- REQUIRED FIELDS VALIDATION (Waypoints tab)---
+  await page.getByRole('button', { name: 'Continue' }).click();
+
+  // Both waypoints have City and Country as required fields
+  // Expect 4 "This field is required." messages (2 per waypoint)
+  // Date and Time are also required, but validated separately - explained in bug report in README.md
+  const validationErrors = page.getByText('This field is required.');
+  await expect(validationErrors).toHaveCount(4);
+
+  // Fill pickup waypoint, verify errors clear dynamically
+  await fillWaypointRequired(page, 0, pickupLocation);
+  await expect(validationErrors).toHaveCount(2);
+
+  // Fill delivery waypoint, all errors should be gone
+  await fillWaypointRequired(page, 1, deliveryLocation);
+  await expect(validationErrors).toHaveCount(0);
+
+  // --- INVALID EMAIL FORMAT ---
+  await page.locator('[id="waypoints[0].contactEmail"]').fill('invalid-email');
+  await page.getByRole('button', { name: 'Continue' }).click();
+
+  // Verify email validation error appears
+  await expect(page.getByText('Enter a valid email address.')).toBeVisible();
+
+  // Fix email format to clear the error
+  await page.locator('[id="waypoints[0].contactEmail"]').fill(pickupLocation.contactEmail);
+  await expect(page.getByText('Enter a valid email address.')).toHaveCount(0);
+
+  // --- OUT-OF-RANGE NUMERIC VALUES (Cargo info tab) ---
+  // await page.getByRole('button', { name: 'Continue' }).click();
+  // TODO: implement...
+
+  // --- CLEANUP ---
+  await page.getByRole('link', { name: 'Requests' }).click();
+  await page.getByRole('button', { name: 'Discard changes' }).click();
+  await expect(page).toHaveURL('/request/list');
 });
 
+/*
 test('usability - button states or duplicate submit', async ({ page }) => {
   // TODO: implement
 });
