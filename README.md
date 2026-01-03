@@ -25,20 +25,20 @@ npx playwright show-report                                      # View HTML repo
 npx playwright show-trace test-results/[test-name]/trace.zip    # View specific trace file directly
 ```
 
-## Bug Report: Reference Field Selection Issue
+## Bugs discovered
 
-### Summary
+### Bug 1: Cargo Reference Field Lazy Rendering
 When filling out the Cargo Info form, the "Reference" field selector matched multiple elements, causing test failures.
 
-### What Happened
+#### What Happened
 When using `getByRole('textbox', { name: 'Reference' })` in the Cargo Info tab:
 - **Initially**: Found 2 Reference textboxes with IDs `waypoints[0].reference` and `waypoints[1].reference`
 - **After filling Cargo description**: Found 1 Reference textbox with ID `reference`
 
-### Possible Root Cause
+#### Possible Root Cause?
 The waypoint Reference fields remain visible in the DOM when first navigating to the Cargo Info tab. Interacting with any cargo field triggers a UI update that hides the waypoint fields and shows the correct cargo Reference field?
 
-### Solutions
+#### Solutions
 Wait for the correct Reference field to appear before filling it:
 
 ```typescript
@@ -56,12 +56,10 @@ Or filling cargo description first works too:
   await page.locator('[id="reference"]').fill(data.reference);
 ```
 
-## Bug Report: Inconsistent Required Field Validation
-
-### Summary
+### Bug 2: Date/Time Validation Inconsistency
 Datetime fields are required to create a transport request, but unlike City/Country fields, they are not validated on the Waypoints tab. This creates poor UX as users only discover missing dates on the Review tab after completing Cargo and Carriers tabs.
 
-### Steps to Reproduce
+#### Steps to Reproduce
 1. Navigate to Create Transport Request
 2. Fill only City and Country for both waypoints (skip datetime fields)
 3. Click Continue → Successfully proceeds to Cargo Info tab
@@ -69,8 +67,24 @@ Datetime fields are required to create a transport request, but unlike City/Coun
 5. Select a carrier, click Continue → Successfully proceeds to Review tab
 6. Click "Send request" → Validation error appears about missing dates
 
-### Expected Behavior
+#### Expected Behavior
 All required fields (City, Country, AND datetimes) should be validated on the Waypoints tab before allowing Continue, maintaining consistent validation patterns.
+
+### Bug 3: Missing Negative Number Validation
+Cargo numeric fields (Value, Max. Length, Overall volume) accept negative values without validation, while only the Overall weight field correctly validates and rejects negative numbers.
+
+#### Steps to Reproduce
+1. Navigate to Create Transport Request
+2. Complete Waypoints tab (fill required City and Country fields)
+3. Click Continue to Cargo Info tab
+4. Enter negative value in the following fields: Value, Max. Length, Overall weight, Overall volume
+
+#### Expected Behavior
+All numeric cargo fields should reject negative values with validation error: "Ensure this value is greater than or equal to 0"
+
+#### Actual Behavior
+- **Overall weight** field: ✅ Shows validation error "Ensure this value is greater than or equal to 0"
+- **Value**, **Max. length** and **Overall Volume** fields: ❌ Accept negative values without validation
 
 ## Observed Test Behavior
 
