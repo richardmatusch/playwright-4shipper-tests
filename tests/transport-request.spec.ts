@@ -180,9 +180,40 @@ test('negative - form validation scenarios', async ({ page }) => {
   await page.locator('[id="waypoints[0].contactEmail"]').fill(pickupLocation.contactEmail);
   await expect(page.getByText('Enter a valid email address.')).toHaveCount(0);
 
+  // --- INVALID DATE LOGIC (delivery before pickup) ---
+  await selectDate(page, 0, '20');
+  await selectDate(page, 3, '15');
+  await page.getByRole('button', { name: 'Continue' }).click();
+
+  // Expect validation error
+  const dateLogicError = page.getByText('This waypoint time is not in');
+  await expect(dateLogicError).toBeVisible();
+
+  // Fix by selecting valid delivery date
+  await page.getByRole('button', { name: 'Clear value' }).nth(1).click(); // Clear the invalid date
+  await selectDate(page, 3, '25');
+  await expect(dateLogicError).toHaveCount(0);
+  await page.getByRole('button', { name: 'Continue' }).click();
+
   // --- OUT-OF-RANGE NUMERIC VALUES (Cargo info tab) ---
-  // await page.getByRole('button', { name: 'Continue' }).click();
-  // TODO: implement...
+  await page.getByRole('spinbutton', { name: 'Value' }).fill('-1');
+  await page.locator('[id="cargo.maxLength"]').fill('-1');
+  await page.locator('[id="cargo.weight"]').fill('-1');
+  await page.locator('[id="cargo.volume"]').fill('-1');
+  // Note: Max value validation not tested - upper boundaries unknown and
+  // min validation already missing on 3/4 fields (documented in readme)
+  await expect(page.getByText('Ensure this value is greater')).toHaveCount(1); // (Should be 4)
+
+  // Fix the value to clear the error
+  await page.locator('[id="cargo.weight"]').fill('1');
+  await expect(page.getByText('Ensure this value is greater')).toHaveCount(0);
+
+  //await page.getByRole('button', { name: 'Continue' }).click();
+
+  // Carriers tab
+  //await page.getByRole('button', { name: 'Continue' }).click();
+
+  // Review tab
 
   // --- CLEANUP ---
   await page.getByRole('link', { name: 'Requests' }).click();

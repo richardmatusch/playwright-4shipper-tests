@@ -86,6 +86,21 @@ All numeric cargo fields should reject negative values with validation error: "E
 - **Overall weight** field: ✅ Shows validation error "Ensure this value is greater than or equal to 0"
 - **Value**, **Max. length** and **Overall Volume** fields: ❌ Accept negative values without validation
 
+### Bug 4: Date Picker Cancel Button Doesn't Revert Selection
+
+#### Steps to Reproduce
+1. Click on any date/time field (note current value)
+2. In the date picker popup, click a different date
+3. Click "Cancel" button
+
+#### Expected Behavior
+Cancel discards the selection and reverts to previous value (or keeps field empty if it was empty)
+
+#### Actual Behavior
+Selected date is kept in the field. Cancel only closes popup without reverting the selection.
+
+**Note:** Cancel only works if no date was clicked. The field value updates immediately on date click, making both "Select" and "Cancel" buttons functionally just popup close buttons.
+
 ## Observed Test Behavior
 
 ### Occasional Timeout with Repeated Runs
