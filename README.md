@@ -1,7 +1,5 @@
 # 4Shipper Playwright Tests
 
-Playwright test suite for the 4Shipper transport request management system.
-
 ## Installation
 
 ```bash
@@ -15,24 +13,16 @@ cp .env.example .env  # Then edit .env with test credentials
 npx playwright test                           # Run all tests
 npx playwright test --headed                  # Run with browser visible
 npx playwright test -g "happy path"           # Run specific test by name
-npx playwright show-report                    # View HTML report with screenshots
+npx playwright test -g "negative" --ui        # Run specific test in UI mode
 ```
 
 ## Debugging Failed Tests
 
-The project is configured to automatically capture debugging artifacts on test failure:
-- **Screenshots**: Visual snapshot at the moment of failure
-- **Videos**: Full test execution recording
-- **Trace files**: Detailed execution logs with screenshots, DOM snapshots, and network requests
+The project is configured to automatically capture screenshots, videos, and trace files on failure.
 
-View the HTML report with screenshots and traces:
 ```bash
-npx playwright show-report
-```
-
-Or view trace files directly:
-```bash
-npx playwright show-trace test-results/[test-name]/trace.zip
+npx playwright show-report                                      # View HTML report with screenshots and traces
+npx playwright show-trace test-results/[test-name]/trace.zip    # View specific trace file directly
 ```
 
 ## Bug Report: Reference Field Selection Issue
@@ -65,6 +55,22 @@ Or filling cargo description first works too:
   await page.getByRole('textbox', { name: 'Cargo description' }).fill(data.description);
   await page.locator('[id="reference"]').fill(data.reference);
 ```
+
+## Bug Report: Inconsistent Required Field Validation
+
+### Summary
+Datetime fields are required to create a transport request, but unlike City/Country fields, they are not validated on the Waypoints tab. This creates poor UX as users only discover missing dates on the Review tab after completing Cargo and Carriers tabs.
+
+### Steps to Reproduce
+1. Navigate to Create Transport Request
+2. Fill only City and Country for both waypoints (skip datetime fields)
+3. Click Continue → Successfully proceeds to Cargo Info tab
+4. Click Continue → Successfully proceeds to Carriers tab
+5. Select a carrier, click Continue → Successfully proceeds to Review tab
+6. Click "Send request" → Validation error appears about missing dates
+
+### Expected Behavior
+All required fields (City, Country, AND datetimes) should be validated on the Waypoints tab before allowing Continue, maintaining consistent validation patterns.
 
 ## Observed Test Behavior
 
