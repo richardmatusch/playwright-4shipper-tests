@@ -99,12 +99,13 @@ async function deleteRequest(page: Page) {
   await page.locator('#dropdownMenu').first().click();
   await page.locator('.dropdown-menu').getByText('Delete').click();
   await page.getByRole('button', { name: 'Delete' }).click();
+  await page.waitForURL('/request/list');
 }
 
 async function discardChanges(page: Page) {
   await page.getByRole('link', { name: 'Requests' }).click();
   await page.getByRole('button', { name: 'Discard changes' }).click();
-  await expect(page).toHaveURL('/request/list');
+  await page.waitForURL('/request/list');
 }
 
 // --- TESTS ---
@@ -115,7 +116,7 @@ test.beforeEach(async ({ page }) => {
   await page.getByRole('textbox', { name: 'Email' }).fill(process.env.TEST_USER_EMAIL!);
   await page.getByRole('textbox', { name: 'Password' }).fill(process.env.TEST_USER_PASSWORD!);
   await page.getByRole('button', { name: 'Login' }).click();
-  await expect(page).toHaveURL('/request/list');
+  await page.waitForURL('/request/list');
 });
 
 test('happy path - create transport request', async ({ page }) => {
@@ -153,7 +154,6 @@ test('happy path - create transport request', async ({ page }) => {
 
   // --- CLEANUP ---
   await deleteRequest(page);
-  await expect(page).toHaveURL('/request/list');
 });
 
 test('negative - form validation scenarios', async ({ page }) => {
