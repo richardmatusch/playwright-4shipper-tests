@@ -35,6 +35,11 @@ const cargoDetails = {
 
 // --- HELPER FUNCTIONS ---
 
+async function navigateToCreateForm(page: Page) {
+  await page.getByRole('link', { name: '+ New request' }).click();
+  await page.waitForURL('/request/create');
+}
+
 /**
  * Select a date from the date picker
  * @param dateInputIndex - Index of the date input field (each waypoint has 2: earliest/latest)
@@ -96,6 +101,12 @@ async function deleteRequest(page: Page) {
   await page.getByRole('button', { name: 'Delete' }).click();
 }
 
+async function discardChanges(page: Page) {
+  await page.getByRole('link', { name: 'Requests' }).click();
+  await page.getByRole('button', { name: 'Discard changes' }).click();
+  await expect(page).toHaveURL('/request/list');
+}
+
 // --- TESTS ---
 
 test.beforeEach(async ({ page }) => {
@@ -108,9 +119,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('happy path - create transport request', async ({ page }) => {
-  // Navigate to create form
-  await page.getByRole('link', { name: '+ New request' }).click();
-  await page.waitForURL('/request/create');
+  await navigateToCreateForm(page);
 
   // --- WAYPOINTS TAB ---
   await expect(page.getByRole('radio', { name: 'One way' })).toBeChecked();
@@ -148,9 +157,7 @@ test('happy path - create transport request', async ({ page }) => {
 });
 
 test('negative - form validation scenarios', async ({ page }) => {
-  // Navigate to create form
-  await page.getByRole('link', { name: '+ New request' }).click();
-  await page.waitForURL('/request/create');
+  await navigateToCreateForm(page);
 
   // --- REQUIRED FIELDS VALIDATION (Waypoints tab)---
   await page.getByRole('button', { name: 'Continue' }).click();
@@ -215,15 +222,11 @@ test('negative - form validation scenarios', async ({ page }) => {
   */
 
   // --- CLEANUP ---
-  await page.getByRole('link', { name: 'Requests' }).click();
-  await page.getByRole('button', { name: 'Discard changes' }).click();
-  await expect(page).toHaveURL('/request/list');
+  await discardChanges(page);
 });
 
 test('usability - continue button validation', async ({ page }) => {
-  // Navigate to create form
-  await page.getByRole('link', { name: '+ New request' }).click();
-  await page.waitForURL('/request/create');
+  await navigateToCreateForm(page);
 
   const continueButton = page.getByRole('button', { name: 'Continue' });
 
@@ -247,7 +250,5 @@ test('usability - continue button validation', async ({ page }) => {
   await expect(page.getByRole('textbox', { name: 'Cargo description' })).toBeVisible();
 
   // --- CLEANUP ---
-  await page.getByRole('link', { name: 'Requests' }).click();
-  await page.getByRole('button', { name: 'Discard changes' }).click();
-  await expect(page).toHaveURL('/request/list');
+  await discardChanges(page);
 });
