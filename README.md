@@ -11,9 +11,11 @@ cp .env.example .env  # Then edit .env with test credentials
 
 ```bash
 npx playwright test                           # Run all tests
+npx playwright test --workers=1               # Run tests sequentially (most reliable)
 npx playwright test --headed                  # Run with browser visible
 npx playwright test -g "happy path"           # Run specific test by name
 npx playwright test -g "negative" --ui        # Run specific test in UI mode
+npx playwright test --project=chromium        # Run tests only in specific browser
 ```
 
 ## Debugging Failed Tests
@@ -112,5 +114,7 @@ Selected date is kept in the field. Cancel only closes popup without reverting t
 
 ## Observed Test Behavior
 
-### Occasional Timeout with Repeated Runs
-When running `npx playwright test --repeat-each=XYZ`, the test occasionally timed out on the last iteration at the "Send request" button click (30 second timeout exceeded). Single test runs complete successfully.
+### Test Reliability Observations
+Tests can fail with timeouts when running in parallel (default configuration) or using `--repeat-each=3` or higher. Not sure if this is due to limited machine resources or server-side issues, but i was not able to find the issue in the test code itself.
+
+**Most reliable:** `npx playwright test --workers=1` (single run, sequential)

@@ -181,7 +181,7 @@ test('negative - form validation scenarios', async ({ page }) => {
   await expect(page.getByText('Enter a valid email address.')).toHaveCount(0);
 
   // --- INVALID DATE LOGIC (delivery before pickup) ---
-  await selectDate(page, 0, '20');
+  await selectDate(page, 0, '16');
   await selectDate(page, 3, '15');
   await page.getByRole('button', { name: 'Continue' }).click();
 
@@ -191,7 +191,7 @@ test('negative - form validation scenarios', async ({ page }) => {
 
   // Fix by selecting valid delivery date
   await page.getByRole('button', { name: 'Clear value' }).nth(1).click(); // Clear the invalid date
-  await selectDate(page, 3, '25');
+  await selectDate(page, 3, '17');
   await expect(dateLogicError).toHaveCount(0);
   await page.getByRole('button', { name: 'Continue' }).click();
 
@@ -208,12 +208,11 @@ test('negative - form validation scenarios', async ({ page }) => {
   await page.locator('[id="cargo.weight"]').fill('1');
   await expect(page.getByText('Ensure this value is greater')).toHaveCount(0);
 
-  //await page.getByRole('button', { name: 'Continue' }).click();
-
+  /*
+  await page.getByRole('button', { name: 'Continue' }).click();
   // Carriers tab
-  //await page.getByRole('button', { name: 'Continue' }).click();
-
-  // Review tab
+  here could go 'no carrier selected' validation if it was implemented in carriers tab
+  */
 
   // --- CLEANUP ---
   await page.getByRole('link', { name: 'Requests' }).click();
@@ -221,8 +220,34 @@ test('negative - form validation scenarios', async ({ page }) => {
   await expect(page).toHaveURL('/request/list');
 });
 
-/*
-test('usability - button states or duplicate submit', async ({ page }) => {
-  // TODO: implement
+test('usability - continue button validation', async ({ page }) => {
+  // Navigate to create form
+  await page.getByRole('link', { name: '+ New request' }).click();
+  await page.waitForURL('/request/create');
+
+  const continueButton = page.getByRole('button', { name: 'Continue' });
+
+  // --- INITIAL STATE: Button starts enabled even when form is empty ---
+  await expect(continueButton).toBeEnabled();
+
+  // --- REACTIVE VALIDATION: Click with empty form → button disables + errors appear ---
+  await continueButton.click();
+
+  await expect(continueButton).toBeDisabled();
+  await expect(page.getByText('This field is required.')).toHaveCount(4);
+
+  // --- BUTTON RE-ENABLES: Fill required fields → button becomes active again ---
+  await fillWaypointRequired(page, 0, pickupLocation);
+  await fillWaypointRequired(page, 1, deliveryLocation);
+  await expect(continueButton).toBeEnabled();
+
+  // --- VERIFY PROGRESSION: Can now proceed to next tab ---
+  await continueButton.click();
+  // Verify cargo-specific field is visible (Cargo description only appears on Cargo Info tab)
+  await expect(page.getByRole('textbox', { name: 'Cargo description' })).toBeVisible();
+
+  // --- CLEANUP ---
+  await page.getByRole('link', { name: 'Requests' }).click();
+  await page.getByRole('button', { name: 'Discard changes' }).click();
+  await expect(page).toHaveURL('/request/list');
 });
-*/
